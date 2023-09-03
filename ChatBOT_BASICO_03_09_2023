@@ -1,0 +1,52 @@
+from nltk.chat.util import Chat, reflections
+import os
+import random # Importar el módulo random
+
+def cargar_pares_desde_archivo(nombre_archivo):
+    pares = []
+
+    # Verificar si el archivo existe, y si no, crearlo
+    if not os.path.exists(nombre_archivo):
+        with open(nombre_archivo, 'w', encoding='utf-8') as archivo:
+            archivo.write("Pregunta | Respuesta\n")
+    
+    with open(nombre_archivo, 'r', encoding='utf-8') as archivo:
+        lineas = archivo.readlines()
+        for linea in lineas:
+            partes = linea.strip().split('|')
+            patron = partes[0].strip()
+            respuestas = [respuesta.strip() for respuesta in partes[1:]]
+            pares.append([patron, respuestas])
+    return pares
+
+def chatear():
+    print("Bienvenido ChatGPT5, lo sé todo dime algo")
+
+    # Cargar la base de datos de conocimiento una sola vez al inicio
+    pares = cargar_pares_desde_archivo("conocimiento.txt")
+    if not pares:
+        # Elegir un saludo al azar y agregarlo a la lista de pares
+        pares.append([r".*", [random.choice("conocimiento.txt")]])
+
+    chat = Chat(pares, reflections)
+
+    while True:
+        mensaje_usuario = input("Tú: ")
+        if mensaje_usuario.lower() == "finalizar":
+            print("ChatGPT5: volveré lo prometo")
+            break
+
+        respuesta = chat.respond(mensaje_usuario)
+        if respuesta is None:
+            print("ChatGPT5: asumakina no se que es eso aun , ¿dime con mas detalle por favor?.")
+            nueva_pregunta = mensaje_usuario.lower()
+            nueva_respuesta = input("ChatGPT5: ¿Como respondo a eso? ")
+            pares.append([nueva_pregunta, [nueva_respuesta]])
+            with open("conocimiento.txt", "a", encoding='utf-8') as archivo:
+                archivo.write(f"\n{nueva_pregunta} | {nueva_respuesta}")
+            print("ChatGPT5: ya le capizco , lo que aprende uno hablado con el usario")
+        else:
+            print("ChatGPT5:", respuesta)
+
+if __name__ == "__main__":
+    chatear()
